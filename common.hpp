@@ -12,7 +12,7 @@ constexpr int NAKED_MAX = 100;
 /* if true, try the pure pointer chasing strategy */
 constexpr int DO_NAKED = true;
 
-void naked_measure_body(float (&time_measure)[NAKED_MAX], uint64_t *bigarray, size_t howmanyhits, size_t repeat);
+void naked_measure_body(float (&time_measure)[NAKED_MAX], float (&guarded_time_measure)[NAKED_MAX], uint64_t *bigarray, size_t howmanyhits, size_t repeat);
 
 typedef uint64_t (access_method_f)(uint64_t *bigarray, size_t howmanyhits);
 

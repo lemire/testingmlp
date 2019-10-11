@@ -107,6 +107,7 @@ int naked_measure(size_t length) {
   printf("Time to sum up the array (linear scan) %.3f s (x 8 = %.3f s), bandwidth = %.1f MB/s \n",mintime,8*mintime, length * sizeof(uint64_t) / mintime / (1024.0 * 1024.0));
 
   float time_measure[NAKED_MAX];
+  float guarded_time_measure[NAKED_MAX];
   size_t howmanyhits = length; //1 * 4 * 5 * 6 * 7 * 8 * 9 * 11 * 13 * 17;
   int repeat = 5;
   printf("Legend:\n"
@@ -117,7 +118,7 @@ int naked_measure(size_t length) {
   printf("---------------------------------------------------------------------\n");
   printf("- # of lanes --- time (s) ---- BandW -- ns/hit -- %% Eff -- Speedup --\n");
   printf("---------------------------------------------------------------------\n");
-  naked_measure_body(time_measure, bigarray, howmanyhits, repeat);
+  naked_measure_body(time_measure, guarded_time_measure, bigarray, howmanyhits, repeat);
 
   for (size_t i = 2; i < NAKED_MAX; i++) {
     float ratio = (time_measure[i - 1] - time_measure[i]) / time_measure[i - 1];
