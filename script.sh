@@ -11,7 +11,7 @@ else
 fi
 
 origval=$(sudo cat /sys/kernel/mm/transparent_hugepage/enabled)
-sudo -u $real_user echo $origval
+echo $origval
 set -e
 function cleanup {
   echo "Restauring hugepages to madvise"
@@ -20,7 +20,7 @@ function cleanup {
 trap cleanup EXIT
 
 for mode in "always" "never" ; do
-  sudo -u $real_user echo "mode: " $mode
+  echo "mode: " $mode
   echo $mode > /sys/kernel/mm/transparent_hugepage/enabled
   echo $(sudo cat /sys/kernel/mm/transparent_hugepage/enabled)
   ./testingmlp  
