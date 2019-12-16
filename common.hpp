@@ -1,3 +1,7 @@
+#ifndef MLP_COMMON_H_
+#define MLP_COMMON_H_
+
+#include <assert.h>
 #include <inttypes.h>
 #include <stdlib.h>
 #include <iostream>
@@ -9,11 +13,16 @@
 /* max MLP value tested with the naked strategy */
 constexpr int NAKED_MAX = 100;
 
-/* if true, try the pure pointer chasing strategy */
-constexpr int DO_NAKED = true;
-
 void naked_measure_body(float (&time_measure)[NAKED_MAX], uint64_t *bigarray, size_t howmanyhits, size_t repeat);
 
-typedef uint64_t (access_method_f)(uint64_t *bigarray, size_t howmanyhits);
+typedef uint64_t (access_method_f)(const uint64_t* sp, const uint64_t *bigarray, size_t howmanyhits);
 
-float time_one(uint64_t *bigarray, size_t howmanyhits, size_t repeat, access_method_f *method, size_t lanes, float firsttime, float lasttime);
+/** get the method implementing mlp_count access chains, up to NAKED_MAX */
+extern access_method_f * all_methods[];
+
+static inline access_method_f * get_method(size_t mlp) {
+    assert(mlp >= 1 && mlp < NAKED_MAX);
+    return all_methods[mlp - 1];
+}
+
+#endif
