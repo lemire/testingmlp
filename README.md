@@ -1,5 +1,17 @@
-# testingmlp
-Testing memory-level parallelism
+# testingmlp: Testing memory-level parallelism
+
+Processor cores can issue multiple memory requests. How many concurrent memory requests can your processor cores support?
+
+The answer seem to vary between 1 and 25, more or less. 
+
+To assess memory-level parallelism, we designed a pointer-chasing benchmark that relies on multiple "lanes" (independent pointer-chasing routines). By increasing the number of "lanes" up to the point where performance stops increasing, we can measure the level parallelism in your processor.
+
+Our benchmark is designed for Linux. It won't work on Windows.
+
+One limitation of our approach has to do with page walking: we work we are RAM-size array and the translation lookaside buffer (TLB) is put to work. If at all possible, you should run this benchmark with transparent huge pages. If you cannot, then report this limitation along with your numbers.
+
+
+
 
 ## Usage
 
