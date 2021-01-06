@@ -1,8 +1,11 @@
 #include "common.hpp"
+#ifdef __linux__
 #include "page-info.h"
-
+#endif 
 #include <chrono>
+#ifdef __linux__
 #include <malloc.h>
+#endif
 #include <stdlib.h>
 #include <string.h>
 #include <random>
@@ -224,6 +227,7 @@ int naked_measure(uint64_t* bigarray, uint64_t* index, size_t length, size_t max
   return 10000;
 }
 
+#ifdef __linux__
 void print_page_info(uint64_t *array, size_t length) {
   constexpr int KPF_THP = 22;
   page_info_array pinfo = get_info_for_range(array, array + length);
@@ -236,10 +240,15 @@ void print_page_info(uint64_t *array, size_t length) {
     printi("Couldn't determine hugepage info (you are probably not running as root)\n");
   }
 }
+#endif
 
 void *malloc_aligned(size_t size, size_t alignment) {
+#ifdef __linux__
   size = ((size - 1) / alignment + 1) * alignment;
   return memalign(alignment, size);
+#else
+  return malloc(size); // ignores alignment?
+#endif
 }
 
 int main() {
@@ -247,11 +256,14 @@ int main() {
   size_t max_mlp = getenv_int("MLP_MAX_MLP", 40);
   printi("Initializing array made of %zu 64-bit words (%5.2f MiB).\n", len_end, len_end * 8. / 1024. / 1024.);
   uint64_t *array = (uint64_t *)malloc_aligned(sizeof(uint64_t) * len_end, 2 * 1024 * 1024);
+#ifdef __linux__  
   madvise(array, len_end * 8, MADV_HUGEPAGE);
+#endif
   std::fill(array, array + len_end, -1);
   uint64_t *index    = (uint64_t *)malloc_aligned(sizeof(uint64_t) * len_end, 2 * 1024 * 1024);
-
+#ifdef __linux__  
   print_page_info(array, len_end);
+#endif
 
   if (!do_csv) {
     printi("Legend:\n"

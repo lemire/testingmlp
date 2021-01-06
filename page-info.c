@@ -5,6 +5,7 @@
  *      Author: tdowns
  */
 
+#ifdef __linux__
 #include "page-info.h"
 
 #include <stdio.h>
@@ -338,3 +339,4 @@ int flag_from_name(char const *name) {
 }
 
 
+#endif
