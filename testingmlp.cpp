@@ -23,6 +23,7 @@ bool getenv_bool(const char *var) {
 }
 
 const int do_csv       = getenv_int("MLP_CSV", 0);
+const int do_distr     = getenv_int("MLP_DISTRIBUTION", 0);
 const size_t len_start = getenv_int("MLP_START", 32 * 1024) * 1024ull; // 1 KiB
 const size_t len_end   = getenv_int("MLP_STOP",  32 * 1024) * 1024ull; // 256 MiB
 
@@ -30,6 +31,28 @@ const size_t len_end   = getenv_int("MLP_STOP",  32 * 1024) * 1024ull; // 256 Mi
 FILE* ifile = do_csv ? stderr : stdout;
 
 #define printi(...) fprintf(ifile, __VA_ARGS__)
+
+template <typename T>
+std::tuple<T,T,T,T> compute_min_mean_std_max(const std::vector<T>& input) {
+
+  T m = 0;
+  T ma = input[0];
+  T mi = input[0];
+
+  for(T v : input) {
+    if(ma < v) { ma = v; }
+    if(mi > v) { mi = v; }
+    m += v;
+  }
+  m /= input.size();
+
+  T std = 0;
+  for(T v : input) {
+    std += (v - m) * (v - m) / input.size();
+  }
+  std = sqrt(std);
+  return {mi, m, std, ma};
+}
 
 float time_one(const uint64_t* sp,
                const uint64_t *bigarray,
@@ -40,16 +63,20 @@ float time_one(const uint64_t* sp,
                float firsttime,
                float lasttime) {
   using namespace std::chrono;
-  float mintime = 99999999999;
+  double mintime = 99999999999;
   uint64_t bogus = 0;
+  std::vector<double> timings(repeat);
   for (size_t r = 0; r < repeat; r++) {
     auto begin_time = high_resolution_clock::now();
     bogus += method(sp, bigarray, howmanyhits);
     auto end_time = high_resolution_clock::now();
-    float tv = duration<float>(end_time - begin_time).count();
-    if (tv < mintime)
+    double tv = duration<double>(end_time - begin_time).count();
+    timings[r] = tv;
+    if (tv < mintime) {
       mintime = tv;
+    }
   }
+  auto [min_timing, mean_timing, std_timing, max_timing]  = compute_min_mean_std_max(timings);
   if (bogus == 0x010101) {
     printf("ping!");
   }
@@ -63,8 +90,6 @@ float time_one(const uint64_t* sp,
   double efficiency = lanes == 1 ? 0 : 100.0 * (lasttime - mintime) / (lasttime - expected);
   double speedup = lanes == 1 ? 1 : firsttime / mintime;
   if (do_csv) {
-    // printf("%zu,%f,%.0f,%.1f,%.0f%%,%.3f\n",
-    //   lanes, mintime, round(mbpers), nanoperquery, efficiency, speedup);
     switch (do_csv) {
       case 1: printf(",%.1f", mbpers); break;
       case 2: printf(",%.3f", speedup); break;
@@ -74,6 +99,13 @@ float time_one(const uint64_t* sp,
     printf("%12zu %12f %10.0f  %8.1f  %6.0f%%  %9.1f\n",
       lanes, mintime, round(mbpers), nanoperquery, efficiency, speedup);
   }
+  if(do_distr) {
+    double top_sigma = (max_timing - mean_timing) / std_timing;
+    double bottom_sigma = (mean_timing - min_timing) / std_timing;
+    printf("timing distribution: N: %zu, min: %.3f, mean: %.3f, std: %f,  max : %.3f, bottom sigma: %.1f, top sigma: %.1f \n",
+      repeat, min_timing, mean_timing, std_timing, max_timing, bottom_sigma, top_sigma);
+  }
+
   return mintime;
 }
 
@@ -187,7 +219,7 @@ int naked_measure(uint64_t* bigarray, uint64_t* index, size_t length, size_t max
 
   float time_measure[NAKED_MAX] = {};
   size_t howmanyhits = length;
-  int repeat = 5;
+  int repeat = 30;
   if (do_csv) {
     printi("Running test for length %zu\n", length);
     // printf("lanes,time,bw,ns/hit,eff,speedup\n");

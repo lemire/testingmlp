@@ -1,4 +1,4 @@
-CXXFLAGS = -O3 -std=c++11 -Wall -g
+CXXFLAGS = -O3 -Wall -std=c++17
 CFLAGS   = -O3 -Wall
 
 .PHONY = clean test
@@ -6,7 +6,7 @@ CFLAGS   = -O3 -Wall
 .DELETE_ON_ERROR:
 
 testingmlp: testingmlp.o generated.o page-info.o
-	$(CXX) $(CXXFLAGS) -o $@ $^
+	$(CXX) $(CXXFLAGS) -o $@ $^ -lm
 
 ifneq ($(GENERATE), 0)
 generated.cpp : gen.py
