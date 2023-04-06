@@ -3,13 +3,13 @@
 #include "page-info.h"
 #endif 
 #include <chrono>
+#include <tuple>
 #ifdef __linux__
 #include <malloc.h>
 #endif
 #include <stdlib.h>
 #include <string.h>
 #include <random>
-
 #include <sys/mman.h>
 
 int getenv_int(const char *var, int def) {
