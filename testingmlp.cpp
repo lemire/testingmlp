@@ -169,13 +169,11 @@ void setup_pointers(uint64_t* sp, const uint64_t* array, const uint64_t* index, 
   size_t totalinc = 0;
   for (size_t m = 1; m < mlp; m++) {
     totalinc += length / mlp;
-    // sp[m] = incr(array, 0, totalinc);
     assert(totalinc < length);
     sp[m] = index[totalinc];
   }
 
   if (!do_csv && mlp > 1) {
-    // printi("Verifying the neighboring distance... \n");
     size_t mind = -1, maxd = 0;
     for (size_t i = 0; i < mlp; i++) {
       bool last = (i + 1 == mlp);
@@ -185,7 +183,6 @@ void setup_pointers(uint64_t* sp, const uint64_t* array, const uint64_t* index, 
       mind = std::min(mind, dist);
       maxd = std::max(maxd, dist);
     }
-    // printi("inter-chain dists: ideal=%zu, min=%zu, max=%zu\n", length / mlp, mind, maxd);
     assert(mind >= length / mlp); // check that the min distance is as good as expected
   }
 }
@@ -222,7 +219,6 @@ int naked_measure(uint64_t* bigarray, uint64_t* index, size_t length, size_t max
   int repeat = 30;
   if (do_csv) {
     printi("Running test for length %zu\n", length);
-    // printf("lanes,time,bw,ns/hit,eff,speedup\n");
     printf("%zu", length);
   } else {
     printi("Size: %zu (%5.2f KiB, %5.2f MiB)\n", length, length * 8. / 1024., length * 8. / 1024. / 1024.);
